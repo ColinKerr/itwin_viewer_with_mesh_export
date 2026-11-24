@@ -16,6 +16,7 @@ import {
   type ScreenViewport,
   StandardViewId,
 } from "@itwin/core-frontend";
+import { initializeFrontendTiles } from "@itwin/frontend-tiles";
 import { useCallback } from "react";
 import { TreeWidget } from "@itwin/tree-widget-react";
 import { PropertyGridManager } from "@itwin/property-grid-react";
@@ -38,6 +39,13 @@ export function App({ iTwinId, iModelId, changesetId }: AppProps) {
   const { client: authClient } = useAuthorizationContext();
 
   const onIModelAppInit = useCallback(async () => {
+    // Stream spatial views from the Mesh Export service instead of the iModel backend.
+    // Must run before any `await`: the Viewer does not await this callback and opens the iModel right after.
+    // If no completed export exists for the iModel, the default backend-generated tiles are used.
+    initializeFrontendTiles({
+      enableCDN: true,
+    });
+
     // iModel now initialized
     await TreeWidget.initialize();
     await PropertyGridManager.initialize();
